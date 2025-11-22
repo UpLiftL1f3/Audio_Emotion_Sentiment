@@ -47,6 +47,8 @@ const AUDIO_MODELS = [
     "cnn_fe",
     "wav2vec_basic",
     "wav2vec_fe",
+    "hubert_basic",
+    "hubert_fe",
 ] as const;
 
 export default function App() {
