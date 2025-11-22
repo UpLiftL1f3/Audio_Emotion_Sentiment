@@ -1,7 +1,9 @@
 # backend/app.py
+import os
+import tempfile
 from typing import Any, Dict, List, Optional
 
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, File, HTTPException, Query, UploadFile
 from pydantic import BaseModel
 from registry import ModelRegistry
 
@@ -64,5 +66,50 @@ def predict_multi(inp: PredictIn):
         except KeyError as e:
             raise HTTPException(status_code=404, detail=str(e))
         results[name] = mdl.predict(texts)
+
+    return {"results": results}
+
+
+@app.post("/predict_multi_audio", response_model=PredictMultiOut)
+async def predict_multi_audio(
+    file: UploadFile = File(...),
+    models: List[str] = Query(..., description="List of model names to run"),
+):
+    if not models:
+        raise HTTPException(status_code=400, detail="Provide at least one model.")
+
+    contents = await file.read()
+    if not contents:
+        raise HTTPException(status_code=400, detail="Empty audio file.")
+
+    # Save uploaded audio to a temporary file
+    try:
+        suffix = os.path.splitext(file.filename or "")[1] or ".wav"
+    except Exception:
+        suffix = ".wav"
+
+    with tempfile.NamedTemporaryFile(delete=False, suffix=suffix) as tmp:
+        tmp.write(contents)
+        tmp_path = tmp.name
+
+    results: Dict[str, List[Dict[str, Any]]] = {}
+
+    try:
+        for name in models:
+            try:
+                mdl = REG.get(name)
+            except KeyError as e:
+                raise HTTPException(status_code=404, detail=str(e))
+
+            # Our InferenceModel.predict expects a list of inputs.
+            outputs = mdl.predict([tmp_path])  # one audio clip -> list with 1 dict
+            results[name] = outputs
+
+    finally:
+        # Clean up temp file
+        try:
+            os.remove(tmp_path)
+        except OSError:
+            pass
 
     return {"results": results}

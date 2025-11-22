@@ -1,18 +1,26 @@
 {
-    "multihead": {
-        "impl": "multihead",
-        "export_dir": "export_multihead"
+    "cnn_basic": {
+        "impl": "cnn_basic",
+        "export_dir": "export_cnn_basic"
     },
-    "twoModelHead": {
-        "impl": "twoModelHead",
-        "export_dir": "export_twoModelHead"
+    "cnn_fe": {
+        "impl": "cnn_fe",
+        "export_dir": "export_cnn_fe"
     },
-    "lr": {
-        "impl": "lr",
-        "export_dir": "export_lr"
+    "wav2vec_basic": {
+        "impl": "wav2vec_basic",
+        "export_dir": "export_wav2vec_basic"
     },
-    "svm": {
-        "impl": "svm",
-        "export_dir": "export_svm"
+    "wav2vec_fe": {
+        "impl": "wav2vec_fe",
+        "export_dir": "export_wav2vec_fe"
+    },
+    "hubert_basic": {
+        "impl": "hubert_basic",
+        "export_dir": "export_hubert_basic"
+    },
+    "hubert_fe": {
+        "impl": "hubert_fe",
+        "export_dir": "export_hubert_fe"
     }
 }

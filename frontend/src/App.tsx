@@ -38,12 +38,12 @@
 // src/App.tsx
 import { useState } from "react";
 import { AudioRecorder } from "./components/AudioRecorder";
-import { usePredictMulti } from "./features/predict/usePredictCompare";
+import { usePredictMultiAudio } from "./features/predict/usePredictCompare";
 import { getInitialTheme, toggleTheme, type Theme } from "./theme";
 
 export default function App() {
     const [theme, setThemeState] = useState<Theme>(getInitialTheme());
-    const predictMulti = usePredictMulti();
+    const predictMulti = usePredictMultiAudio();
 
     function formatPercent(value: number): string {
         const pct = Math.round(value * 1000) / 10; // one decimal
@@ -78,8 +78,10 @@ export default function App() {
     }
 
     function handleRecordingComplete(blob: Blob) {
-        // TODO: hook this into an audio-based prediction endpoint when available.
-        console.log("Recorded audio blob", blob);
+        predictMulti.mutate({
+            blob,
+            models: ["multihead", "twoModelHead", "lr", "svm"],
+        });
     }
 
     return (

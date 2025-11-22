@@ -15,3 +15,17 @@ export async function apiPost<T>(
     if (!res.ok) throw new Error(`${res.status} ${res.statusText}`);
     return res.json() as Promise<T>;
 }
+
+export async function apiPostForm<T>(
+    path: string,
+    body: FormData,
+    signal?: AbortSignal
+): Promise<T> {
+    const res = await fetch(`${BASE}${path}`, {
+        method: "POST",
+        body,
+        signal,
+    });
+    if (!res.ok) throw new Error(`${res.status} ${res.statusText}`);
+    return res.json() as Promise<T>;
+}
