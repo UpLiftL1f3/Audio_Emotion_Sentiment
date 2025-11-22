@@ -71,7 +71,7 @@ uvicorn.log
 export_*/
 export_multihead/
 checkpoints/
-models/
+models/__pycache__/
 artifacts/
 *.pt
 *.bin

@@ -1,0 +1,11 @@
+For json changes
+
+{
+  "multihead": {
+    "impl": "multihead",               // module name under models/
+    "export_dir": "export_multihead"   // path to the folder for that model
+  }
+
+  // Later you can add more models:
+  // "toxicity_v1": {"impl": "toxicity", "export_dir": "export_toxicity_v1"}
+}
