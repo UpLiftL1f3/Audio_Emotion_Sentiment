@@ -51,6 +51,7 @@ const AUDIO_MODELS = [
 
 export default function App() {
     const [theme, setThemeState] = useState<Theme>(getInitialTheme());
+    const [lastBlob, setLastBlob] = useState<Blob | null>(null);
     const predictMulti = usePredictMultiAudio();
 
     function formatPercent(value: number): string {
@@ -90,6 +91,8 @@ export default function App() {
     }
 
     function handleRecordingComplete(blob: Blob) {
+        // Remember last recording so it can be resent
+        setLastBlob(blob);
         // Send the audio blob to the backend audio models
         predictMulti.mutate({
             blob,
@@ -140,6 +143,44 @@ export default function App() {
                 }}
             >
                 <AudioRecorder onRecordingComplete={handleRecordingComplete} />
+
+                {lastBlob && (
+                    <div
+                        style={{
+                            marginTop: 8,
+                            display: "flex",
+                            justifyContent: "center",
+                        }}
+                    >
+                        <button
+                            type="button"
+                            onClick={() => {
+                                if (!lastBlob) return;
+                                predictMulti.mutate({
+                                    blob: lastBlob,
+                                    models: [...AUDIO_MODELS],
+                                });
+                            }}
+                            disabled={predictMulti.isPending}
+                            style={{
+                                padding: "8px 14px",
+                                borderRadius: 999,
+                                border: "1px solid var(--border)",
+                                background: "var(--button-bg)",
+                                color: "var(--button-text)",
+                                fontWeight: 500,
+                                opacity: predictMulti.isPending ? 0.7 : 1,
+                                cursor: predictMulti.isPending
+                                    ? "default"
+                                    : "pointer",
+                            }}
+                        >
+                            {predictMulti.isPending
+                                ? "Sending…"
+                                : "Resend last recording"}
+                        </button>
+                    </div>
+                )}
 
                 {predictMulti.isError && (
                     <p style={{ marginTop: 12, color: "#ff7a7a" }}>
