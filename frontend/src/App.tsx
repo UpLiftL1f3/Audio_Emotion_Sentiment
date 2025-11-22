@@ -41,6 +41,14 @@ import { AudioRecorder } from "./components/AudioRecorder";
 import { usePredictMultiAudio } from "./features/predict/usePredictCompare";
 import { getInitialTheme, toggleTheme, type Theme } from "./theme";
 
+// The audio models currently configured in backend/models.json
+const AUDIO_MODELS = [
+    "cnn_basic",
+    "cnn_fe",
+    "wav2vec_basic",
+    "wav2vec_fe",
+] as const;
+
 export default function App() {
     const [theme, setThemeState] = useState<Theme>(getInitialTheme());
     const predictMulti = usePredictMultiAudio();
@@ -64,23 +72,28 @@ export default function App() {
 
     function titleFor(key: string): string {
         switch (key) {
-            case "multihead":
-                return "DistilBERT";
-            case "twoModelHead":
-                return "RoBERTa";
-            case "lr":
-                return "Logistic Regression";
-            case "svm":
-                return "Support Vector Machine";
+            case "cnn_basic":
+                return "CNN (Basic)";
+            case "cnn_fe":
+                return "CNN (Feature-Engineered)";
+            case "wav2vec_basic":
+                return "Wav2Vec (Basic)";
+            case "wav2vec_fe":
+                return "Wav2Vec (Feature-Engineered)";
+            case "hubert_basic":
+                return "HuBERT (Basic)";
+            case "hubert_fe":
+                return "HuBERT (Feature-Engineered)";
             default:
                 return key;
         }
     }
 
     function handleRecordingComplete(blob: Blob) {
+        // Send the audio blob to the backend audio models
         predictMulti.mutate({
             blob,
-            models: ["multihead", "twoModelHead", "lr", "svm"],
+            models: [...AUDIO_MODELS],
         });
     }
 
@@ -155,222 +168,214 @@ export default function App() {
                                 gridTemplateRows: "1fr 1fr",
                             }}
                         >
-                            {["multihead", "twoModelHead", "lr", "svm"].map(
-                                (name, idx) => {
-                                    const res =
-                                        predictMulti.data.results?.[name]?.[0];
-                                    const isLeftCol = idx % 2 === 0;
-                                    const isTopRow = idx < 2;
-                                    const bgVars = [
-                                        "var(--quad-1-bg)",
-                                        "var(--quad-2-bg)",
-                                        "var(--quad-3-bg)",
-                                        "var(--quad-4-bg)",
-                                    ];
-                                    const cellBg = bgVars[idx % bgVars.length];
-                                    return (
+                            {AUDIO_MODELS.map((name, idx) => {
+                                const res =
+                                    predictMulti.data.results?.[name]?.[0];
+                                const isLeftCol = idx % 2 === 0;
+                                const isTopRow = idx < 2;
+                                const bgVars = [
+                                    "var(--quad-1-bg)",
+                                    "var(--quad-2-bg)",
+                                    "var(--quad-3-bg)",
+                                    "var(--quad-4-bg)",
+                                ];
+                                const cellBg = bgVars[idx % bgVars.length];
+                                return (
+                                    <div
+                                        key={name}
+                                        style={{
+                                            padding: 11,
+                                            minHeight: 198,
+                                            background: cellBg,
+                                            borderRight: isLeftCol
+                                                ? "1px solid var(--border)"
+                                                : undefined,
+                                            borderBottom: isTopRow
+                                                ? "1px solid var(--border)"
+                                                : undefined,
+                                            display: "flex",
+                                            flexDirection: "column",
+                                            gap: 7,
+                                        }}
+                                    >
                                         <div
-                                            key={name}
                                             style={{
-                                                padding: 11,
-                                                minHeight: 198,
-                                                background: cellBg,
-                                                borderRight: isLeftCol
-                                                    ? "1px solid var(--border)"
-                                                    : undefined,
-                                                borderBottom: isTopRow
-                                                    ? "1px solid var(--border)"
-                                                    : undefined,
-                                                display: "flex",
-                                                flexDirection: "column",
-                                                gap: 7,
+                                                fontWeight: 700,
+                                                fontSize: 16,
+                                                letterSpacing: 0.3,
+                                                textAlign: "center",
+                                                borderBottom:
+                                                    "1px solid var(--border)",
+                                                paddingBottom: 6,
+                                                marginBottom: 6,
                                             }}
                                         >
+                                            {titleFor(name)}
+                                        </div>
+                                        {!res ? (
                                             <div
                                                 style={{
-                                                    fontWeight: 700,
-                                                    fontSize: 16,
-                                                    letterSpacing: 0.3,
-                                                    textAlign: "center",
-                                                    borderBottom:
-                                                        "1px solid var(--border)",
-                                                    paddingBottom: 6,
-                                                    marginBottom: 6,
+                                                    opacity: 0.7,
+                                                    fontStyle: "italic",
                                                 }}
                                             >
-                                                {titleFor(name)}
+                                                No data
                                             </div>
-                                            {!res ? (
+                                        ) : (
+                                            <>
                                                 <div
                                                     style={{
-                                                        opacity: 0.7,
-                                                        fontStyle: "italic",
+                                                        display: "flex",
+                                                        gap: 8,
+                                                        flexWrap: "wrap",
+                                                        alignItems: "baseline",
                                                     }}
                                                 >
-                                                    No data
+                                                    <span
+                                                        style={{
+                                                            fontWeight: 600,
+                                                        }}
+                                                    >
+                                                        Sentiment:
+                                                    </span>
+                                                    <span>
+                                                        {capFirst(
+                                                            res.sentiment
+                                                        )}
+                                                    </span>
                                                 </div>
-                                            ) : (
-                                                <>
-                                                    <div
-                                                        style={{
-                                                            display: "flex",
-                                                            gap: 8,
-                                                            flexWrap: "wrap",
-                                                            alignItems:
-                                                                "baseline",
-                                                        }}
-                                                    >
-                                                        <span
+                                                <div
+                                                    style={{
+                                                        display: "flex",
+                                                        flexWrap: "wrap",
+                                                        // gap: 12,
+                                                        justifyContent:
+                                                            "flex-start",
+                                                        fontSize: 13,
+                                                        marginTop: 6,
+                                                        marginBottom: 10,
+                                                    }}
+                                                >
+                                                    {sortedEntries(
+                                                        res.sentiment_probs
+                                                    ).map(([label, p]) => (
+                                                        <div
+                                                            key={`s-${label}`}
                                                             style={{
-                                                                fontWeight: 600,
+                                                                display: "flex",
+                                                                flexDirection:
+                                                                    "column",
+                                                                alignItems:
+                                                                    "center",
+                                                                flex: "0 0 120px",
+                                                                minWidth: 0,
+                                                                border:
+                                                                    p >= 0.3
+                                                                        ? "2px solid var(--text)"
+                                                                        : "1px solid transparent",
+                                                                borderRadius: 6,
+                                                                padding: 4,
                                                             }}
                                                         >
-                                                            Sentiment:
-                                                        </span>
-                                                        <span>
-                                                            {capFirst(
-                                                                res.sentiment
-                                                            )}
-                                                        </span>
-                                                    </div>
-                                                    <div
-                                                        style={{
-                                                            display: "flex",
-                                                            flexWrap: "wrap",
-                                                            // gap: 12,
-                                                            justifyContent:
-                                                                "flex-start",
-                                                            fontSize: 13,
-                                                            marginTop: 6,
-                                                            marginBottom: 10,
-                                                        }}
-                                                    >
-                                                        {sortedEntries(
-                                                            res.sentiment_probs
-                                                        ).map(([label, p]) => (
-                                                            <div
-                                                                key={`s-${label}`}
+                                                            <span
                                                                 style={{
-                                                                    display:
-                                                                        "flex",
-                                                                    flexDirection:
-                                                                        "column",
-                                                                    alignItems:
-                                                                        "center",
-                                                                    flex: "0 0 120px",
-                                                                    minWidth: 0,
-                                                                    border:
-                                                                        p >= 0.3
-                                                                            ? "2px solid var(--text)"
-                                                                            : "1px solid transparent",
-                                                                    borderRadius: 6,
-                                                                    padding: 4,
+                                                                    fontWeight: 600,
                                                                 }}
                                                             >
-                                                                <span
-                                                                    style={{
-                                                                        fontWeight: 600,
-                                                                    }}
-                                                                >
-                                                                    {capFirst(
-                                                                        label
-                                                                    )}
-                                                                </span>
-                                                                <span
-                                                                    style={{
-                                                                        opacity: 0.85,
-                                                                    }}
-                                                                >
-                                                                    {formatPercent(
-                                                                        p
-                                                                    )}
-                                                                </span>
-                                                            </div>
-                                                        ))}
-                                                    </div>
+                                                                {capFirst(
+                                                                    label
+                                                                )}
+                                                            </span>
+                                                            <span
+                                                                style={{
+                                                                    opacity: 0.85,
+                                                                }}
+                                                            >
+                                                                {formatPercent(
+                                                                    p
+                                                                )}
+                                                            </span>
+                                                        </div>
+                                                    ))}
+                                                </div>
 
-                                                    <div
+                                                <div
+                                                    style={{
+                                                        display: "flex",
+                                                        gap: 8,
+                                                        flexWrap: "wrap",
+                                                        alignItems: "baseline",
+                                                        marginTop: 14,
+                                                    }}
+                                                >
+                                                    <span
                                                         style={{
-                                                            display: "flex",
-                                                            gap: 8,
-                                                            flexWrap: "wrap",
-                                                            alignItems:
-                                                                "baseline",
-                                                            marginTop: 14,
+                                                            fontWeight: 600,
                                                         }}
                                                     >
-                                                        <span
+                                                        Emotion:
+                                                    </span>
+                                                    <span>
+                                                        {capFirst(res.emotion)}
+                                                    </span>
+                                                </div>
+                                                <div
+                                                    style={{
+                                                        display: "grid",
+                                                        gridTemplateColumns:
+                                                            "repeat(6, minmax(0, 8em))",
+                                                        gap: 0,
+                                                        fontSize: 13,
+                                                        marginTop: 6,
+                                                    }}
+                                                >
+                                                    {sortedEntries(
+                                                        res.emotion_probs
+                                                    ).map(([label, p]) => (
+                                                        <div
+                                                            key={`e-${label}`}
                                                             style={{
-                                                                fontWeight: 600,
+                                                                display: "flex",
+                                                                flexDirection:
+                                                                    "column",
+                                                                alignItems:
+                                                                    "center",
+                                                                flex: "0 0 120px",
+                                                                minWidth: 40,
+                                                                border:
+                                                                    p >= 0.3
+                                                                        ? "2px solid var(--text)"
+                                                                        : "1px solid transparent",
+                                                                borderRadius: 6,
+                                                                padding: 4,
                                                             }}
                                                         >
-                                                            Emotion:
-                                                        </span>
-                                                        <span>
-                                                            {capFirst(
-                                                                res.emotion
-                                                            )}
-                                                        </span>
-                                                    </div>
-                                                    <div
-                                                        style={{
-                                                            display: "grid",
-                                                            gridTemplateColumns:
-                                                                "repeat(6, minmax(0, 8em))",
-                                                            gap: 0,
-                                                            fontSize: 13,
-                                                            marginTop: 6,
-                                                        }}
-                                                    >
-                                                        {sortedEntries(
-                                                            res.emotion_probs
-                                                        ).map(([label, p]) => (
-                                                            <div
-                                                                key={`e-${label}`}
+                                                            <span
                                                                 style={{
-                                                                    display:
-                                                                        "flex",
-                                                                    flexDirection:
-                                                                        "column",
-                                                                    alignItems:
-                                                                        "center",
-                                                                    flex: "0 0 120px",
-                                                                    minWidth: 40,
-                                                                    border:
-                                                                        p >= 0.3
-                                                                            ? "2px solid var(--text)"
-                                                                            : "1px solid transparent",
-                                                                    borderRadius: 6,
-                                                                    padding: 4,
+                                                                    fontWeight: 600,
                                                                 }}
                                                             >
-                                                                <span
-                                                                    style={{
-                                                                        fontWeight: 600,
-                                                                    }}
-                                                                >
-                                                                    {capFirst(
-                                                                        label
-                                                                    )}
-                                                                </span>
-                                                                <span
-                                                                    style={{
-                                                                        opacity: 0.85,
-                                                                    }}
-                                                                >
-                                                                    {formatPercent(
-                                                                        p
-                                                                    )}
-                                                                </span>
-                                                            </div>
-                                                        ))}
-                                                    </div>
-                                                </>
-                                            )}
-                                        </div>
-                                    );
-                                }
-                            )}
+                                                                {capFirst(
+                                                                    label
+                                                                )}
+                                                            </span>
+                                                            <span
+                                                                style={{
+                                                                    opacity: 0.85,
+                                                                }}
+                                                            >
+                                                                {formatPercent(
+                                                                    p
+                                                                )}
+                                                            </span>
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            </>
+                                        )}
+                                    </div>
+                                );
+                            })}
                         </div>
                     </div>
                 )}
