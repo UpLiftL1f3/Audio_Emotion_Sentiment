@@ -2,11 +2,16 @@
 import { useMutation } from "@tanstack/react-query";
 import { apiPost, apiPostForm } from "../../lib/api";
 
+// Generic model output for audio models.
+// All backends return per-label probabilities plus a top label/score,
+// and some (wav2vec*/hubert*) also return a human-readable message.
 export type ModelOutput = {
-    sentiment: string;
-    sentiment_probs: Record<string, number>;
-    emotion: string;
-    emotion_probs: Record<string, number>;
+    probs: Record<string, number>;
+    top_label: string;
+    top_score: number;
+    message?: string;
+    // Allow extra keys from specific models without breaking the type.
+    [key: string]: unknown;
 };
 
 export type PredictMultiOut = {

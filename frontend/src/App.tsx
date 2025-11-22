@@ -56,8 +56,9 @@ export default function App() {
     const [lastBlob, setLastBlob] = useState<Blob | null>(null);
     const predictMulti = usePredictMultiAudio();
 
+    // Backend returns probabilities/top_score already on a 0–100 scale.
     function formatPercent(value: number): string {
-        const pct = Math.round(value * 1000) / 10; // one decimal
+        const pct = Math.round(value * 10) / 10; // one decimal
         return `${pct}%`;
     }
 
@@ -266,6 +267,7 @@ export default function App() {
                                             </div>
                                         ) : (
                                             <>
+                                                {/* Top prediction summary */}
                                                 <div
                                                     style={{
                                                         display: "flex",
@@ -279,31 +281,54 @@ export default function App() {
                                                             fontWeight: 600,
                                                         }}
                                                     >
-                                                        Sentiment:
+                                                        Top emotion:
                                                     </span>
                                                     <span>
                                                         {capFirst(
-                                                            res.sentiment
+                                                            res.top_label
+                                                        )}{" "}
+                                                        (
+                                                        {formatPercent(
+                                                            res.top_score
                                                         )}
+                                                        )
                                                     </span>
                                                 </div>
+
+                                                {/* Optional backend message (e.g. placeholder models) */}
+                                                {"message" in res &&
+                                                    typeof res.message ===
+                                                        "string" &&
+                                                    res.message && (
+                                                        <div
+                                                            style={{
+                                                                marginTop: 6,
+                                                                fontSize: 12,
+                                                                fontStyle:
+                                                                    "italic",
+                                                                opacity: 0.8,
+                                                            }}
+                                                        >
+                                                            {res.message}
+                                                        </div>
+                                                    )}
+
+                                                {/* Probability breakdown */}
                                                 <div
                                                     style={{
                                                         display: "flex",
                                                         flexWrap: "wrap",
-                                                        // gap: 12,
                                                         justifyContent:
                                                             "flex-start",
                                                         fontSize: 13,
-                                                        marginTop: 6,
-                                                        marginBottom: 10,
+                                                        marginTop: 10,
                                                     }}
                                                 >
                                                     {sortedEntries(
-                                                        res.sentiment_probs
+                                                        res.probs
                                                     ).map(([label, p]) => (
                                                         <div
-                                                            key={`s-${label}`}
+                                                            key={`prob-${label}`}
                                                             style={{
                                                                 display: "flex",
                                                                 flexDirection:
@@ -313,84 +338,12 @@ export default function App() {
                                                                 flex: "0 0 120px",
                                                                 minWidth: 0,
                                                                 border:
-                                                                    p >= 0.3
+                                                                    p >= 30
                                                                         ? "2px solid var(--text)"
                                                                         : "1px solid transparent",
                                                                 borderRadius: 6,
                                                                 padding: 4,
-                                                            }}
-                                                        >
-                                                            <span
-                                                                style={{
-                                                                    fontWeight: 600,
-                                                                }}
-                                                            >
-                                                                {capFirst(
-                                                                    label
-                                                                )}
-                                                            </span>
-                                                            <span
-                                                                style={{
-                                                                    opacity: 0.85,
-                                                                }}
-                                                            >
-                                                                {formatPercent(
-                                                                    p
-                                                                )}
-                                                            </span>
-                                                        </div>
-                                                    ))}
-                                                </div>
-
-                                                <div
-                                                    style={{
-                                                        display: "flex",
-                                                        gap: 8,
-                                                        flexWrap: "wrap",
-                                                        alignItems: "baseline",
-                                                        marginTop: 14,
-                                                    }}
-                                                >
-                                                    <span
-                                                        style={{
-                                                            fontWeight: 600,
-                                                        }}
-                                                    >
-                                                        Emotion:
-                                                    </span>
-                                                    <span>
-                                                        {capFirst(res.emotion)}
-                                                    </span>
-                                                </div>
-                                                <div
-                                                    style={{
-                                                        display: "grid",
-                                                        gridTemplateColumns:
-                                                            "repeat(6, minmax(0, 8em))",
-                                                        gap: 0,
-                                                        fontSize: 13,
-                                                        marginTop: 6,
-                                                    }}
-                                                >
-                                                    {sortedEntries(
-                                                        res.emotion_probs
-                                                    ).map(([label, p]) => (
-                                                        <div
-                                                            key={`e-${label}`}
-                                                            style={{
-                                                                display: "flex",
-                                                                flexDirection:
-                                                                    "column",
-                                                                alignItems:
-                                                                    "center",
-                                                                flex: "0 0 120px",
-                                                                minWidth: 40,
-                                                                border:
-                                                                    p >= 0.3
-                                                                        ? "2px solid var(--text)"
-                                                                        : "1px solid transparent",
-                                                                borderRadius: 6,
-                                                                padding: 4,
+                                                                marginBottom: 6,
                                                             }}
                                                         >
                                                             <span
