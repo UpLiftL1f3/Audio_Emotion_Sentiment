@@ -1,0 +1,51 @@
+### OS & editor
+.DS_Store
+Thumbs.db
+.vscode/*
+!.vscode/extensions.json
+.idea/
+*.swp
+*.swo
+
+### Python / backend
+__pycache__/
+*.py[cod]
+*.so
+*.pyd
+*.pyo
+*.egg-info/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+coverage.xml
+htmlcov/
+
+### Virtual environments
+.venv/
+venv/
+env/
+ENV/
+/backend/once/
+/backend/\#/
+
+### Node / frontend
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+node_modules/
+dist/
+dist-ssr/
+*.local
+
+### Environment & local config
+.env
+.env.*
+!.env.example
+
+

@@ -1,0 +1,85 @@
+# Python bytecode/cache
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual environments
+.venv/
+venv/
+ENV/
+env/
+.python-version
+
+# Environment files
+.env
+.env.*
+
+# Build/dist artifacts
+build/
+dist/
+develop-eggs/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# Testing / coverage
+.pytest_cache/
+.cache/
+.tox/
+.nox/
+.coverage
+.coverage.*
+coverage.xml
+nosetests.xml
+htmlcov/
+.hypothesis/
+*.cover
+*.py,cover
+
+# Type checker / linter caches
+.mypy_cache/
+.pytype/
+.ruff_cache/
+
+# Logs
+*.log
+logs/
+uvicorn.log
+
+# Editors / OS
+.DS_Store
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Notebooks
+.ipynb_checkpoints/
+
+# Large model artifacts and exports
+export_*/
+export_multihead/
+checkpoints/
+models/
+artifacts/
+*.pt
+*.bin
+*.safetensors
+*.onnx
+*.joblib
+*.zip
+
+# Local DBs / misc
+*.sqlite*
+data/

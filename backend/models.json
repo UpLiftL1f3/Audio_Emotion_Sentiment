@@ -1,0 +1,18 @@
+{
+    "multihead": {
+        "impl": "multihead",
+        "export_dir": "export_multihead"
+    },
+    "twoModelHead": {
+        "impl": "twoModelHead",
+        "export_dir": "export_twoModelHead"
+    },
+    "lr": {
+        "impl": "lr",
+        "export_dir": "export_lr"
+    },
+    "svm": {
+        "impl": "svm",
+        "export_dir": "export_svm"
+    }
+}
