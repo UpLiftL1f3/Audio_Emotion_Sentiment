@@ -182,15 +182,25 @@ class Hubert_basicModel(InferenceModel):
         return probs.astype(float)
 
     def predict(self, inputs: List[str]) -> List[Dict[str, Any]]:
+        """
+        inputs: list of audio file paths.
+        Returns: list of dicts with:
+          - "probs": {emotion: percentage_0_100}
+          - "top_label": best emotion
+          - "top_score": best percentage
+        """
+        # 1) Encode each path into the same feature space used in training
         feats: List[np.ndarray] = [self._encode(p) for p in inputs]
         X = np.stack(feats, axis=0)  # (N, D)
 
-        probs_batch = self._predict_batch(X)
+        # 2) Get raw probs/logits from classifier
+        probs_batch = self._predict_batch(X)  # (N, num_outputs)
 
         results: List[Dict[str, Any]] = []
         for probs in probs_batch:
-            # Ensure we don't index past the label list if classifier has more outputs.
             probs = np.asarray(probs, dtype=float)
+
+            # Limit to the number of emotion labels we actually have
             n = min(len(self.emotion_labels), len(probs))
             if n == 0:
                 continue
@@ -198,7 +208,17 @@ class Hubert_basicModel(InferenceModel):
             probs_use = probs[:n]
             labels_use = self.emotion_labels[:n]
 
+            # --- Re-normalize over these n emotions so they form a proper distribution ---
+            total = float(np.sum(probs_use))
+            if (not np.isfinite(total)) or total <= 0.0:
+                # Degenerate case: fall back to uniform
+                probs_use = np.ones_like(probs_use, dtype=float) / float(n)
+            else:
+                probs_use = probs_use / total  # now sums to ~1.0
+
+            # Convert to percentages
             pct = {label: float(p * 100.0) for label, p in zip(labels_use, probs_use)}
+
             top_idx = int(np.argmax(probs_use))
             top_label = labels_use[top_idx]
             top_score = float(probs_use[top_idx] * 100.0)

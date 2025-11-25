@@ -90,12 +90,22 @@ class Cnn_feModel(InferenceModel):
             probs = self.model.predict(x, verbose=0)[0]
             probs = probs.astype(float)
 
-            pct = {
-                label: float(p * 100.0) for label, p in zip(self.emotion_labels, probs)
-            }
-            top_idx = int(np.argmax(probs))
-            top_label = self.emotion_labels[top_idx]
-            top_score = float(probs[top_idx] * 100.0)
+            # Make sure we only consider as many outputs as we have labels,
+            # and renormalize so they form a proper distribution.
+            n = min(len(self.emotion_labels), len(probs))
+            probs_use = probs[:n]
+            labels_use = self.emotion_labels[:n]
+
+            total = float(np.sum(probs_use))
+            if (not np.isfinite(total)) or total <= 0.0:
+                probs_use = np.ones_like(probs_use, dtype=float) / float(n)
+            else:
+                probs_use = probs_use / total
+
+            pct = {label: float(p * 100.0) for label, p in zip(labels_use, probs_use)}
+            top_idx = int(np.argmax(probs_use))
+            top_label = labels_use[top_idx]
+            top_score = float(probs_use[top_idx] * 100.0)
 
             results.append(
                 {

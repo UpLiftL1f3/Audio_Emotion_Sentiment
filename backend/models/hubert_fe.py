@@ -183,6 +183,13 @@ class Hubert_feModel(InferenceModel):
         return probs.astype(float)
 
     def predict(self, inputs: List[str]) -> List[Dict[str, Any]]:
+        """
+        inputs: list of audio file paths.
+        Returns: list of dicts with:
+          - "probs": {emotion: percentage_0_100}
+          - "top_label": best emotion
+          - "top_score": best percentage
+        """
         feats: List[np.ndarray] = [self._encode(p) for p in inputs]
         X = np.stack(feats, axis=0)
 
@@ -197,6 +204,13 @@ class Hubert_feModel(InferenceModel):
 
             probs_use = probs[:n]
             labels_use = self.emotion_labels[:n]
+
+            # Re-normalize across the emotions we actually expose
+            total = float(np.sum(probs_use))
+            if (not np.isfinite(total)) or total <= 0.0:
+                probs_use = np.ones_like(probs_use, dtype=float) / float(n)
+            else:
+                probs_use = probs_use / total
 
             pct = {label: float(p * 100.0) for label, p in zip(labels_use, probs_use)}
             top_idx = int(np.argmax(probs_use))
